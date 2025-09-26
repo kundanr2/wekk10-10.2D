@@ -1,4 +1,4 @@
-name: CD Production
+name: CD - Deploy to Production
 
 on:
   push:
@@ -6,26 +6,35 @@ on:
       - main
 
 jobs:
-  deploy-production:
+  deploy:
     runs-on: ubuntu-latest
-
-    env:
-      RESOURCE_GROUP: 10.2d-rg
-      CLUSTER_NAME: sit722aks
-      NAMESPACE: sit722-prod
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Set AKS context
-      run: az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --overwrite-existing
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          cluster-name: sit722aks
+          resource-group: 10.2d-rg
 
-    - name: Deploy all manifests to Production
-      run: |
-        kubectl apply -f k8s/production/
+      - name: Ensure production namespace exists
+        run: |
+          kubectl create namespace production || true
+
+      - name: Deploy to Production
+        run: |
+          kubectl apply -n production -f k8s/
+
+      - name: Restart Deployments to pull latest images
+        run: |
+          kubectl rollout restart deployment/frontend -n production
+          kubectl rollout restart deployment/product-service -n production
+          kubectl rollout restart deployment/order-service -n production
+          kubectl rollout restart deployment/customer-service -n production

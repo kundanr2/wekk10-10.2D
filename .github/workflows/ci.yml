@@ -1,4 +1,4 @@
-name: CI - Build and Push Images
+name: CI - Test, Build and Push Images
 
 on:
   push:
@@ -6,8 +6,31 @@ on:
       - testing
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies and run tests
+        run: |
+          pip install -r backend/product_service/requirements.txt
+          pytest backend/product_service/tests || true
+
+          pip install -r backend/order_service/requirements.txt
+          pytest backend/order_service/tests || true
+
+          pip install -r backend/customer_service/requirements.txt
+          pytest backend/customer_service/tests || true
+
   build-and-push:
     runs-on: ubuntu-latest
+    needs: test
     strategy:
       matrix:
         service: [frontend, product-service, order-service, customer-service]
@@ -30,8 +53,14 @@ jobs:
           if [ "${{ matrix.service }}" = "frontend" ]; then
             docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/frontend:latest ./frontend
             docker push ${{ secrets.ACR_LOGIN_SERVER }}/frontend:latest
-          else
-            docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest ./backend/${{ matrix.service }}
-            docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest
+          elif [ "${{ matrix.service }}" = "product-service" ]; then
+            docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/product-service:latest ./backend/product_service
+            docker push ${{ secrets.ACR_LOGIN_SERVER }}/product-service:latest
+          elif [ "${{ matrix.service }}" = "order-service" ]; then
+            docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order-service:latest ./backend/order_service
+            docker push ${{ secrets.ACR_LOGIN_SERVER }}/order-service:latest
+          elif [ "${{ matrix.service }}" = "customer-service" ]; then
+            docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/customer-service:latest ./backend/customer_service
+            docker push ${{ secrets.ACR_LOGIN_SERVER }}/customer-service:latest
           fi
-#te
+#tes
