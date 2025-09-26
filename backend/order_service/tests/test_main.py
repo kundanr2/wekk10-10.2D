@@ -1,13 +1,15 @@
+# week08/backend/order_service/tests/test_main.py
+
 import logging
 import time
 from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from app.db import SessionLocal, engine, get_db
 from app.main import PRODUCT_SERVICE_URL, app
 from app.models import Base, Order, OrderItem
-
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
@@ -17,10 +19,9 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
 logging.getLogger("fastapi").setLevel(logging.WARNING)
-logging.getLogger("app.main").setLevel(logging.WARNING)
+logging.getLogger("app.main").setLevel(logging.WARNING)  # Suppress app's own info logs
 
 
-# --- Pytest Fixtures ---
 @pytest.fixture(scope="session", autouse=True)
 def setup_database_for_tests():
     max_retries = 10
@@ -35,7 +36,11 @@ def setup_database_for_tests():
             logging.info(
                 "Order Service Tests: Successfully dropped all tables in PostgreSQL for test setup."
             )
-
+            # Configure Product Service URL (from env or default for CI)
+            PRODUCT_SERVICE_URL = os.getenv("PRODUCT_SERVICE_URL", "http://localhost:8000")
+            logging.info(
+                f"Order Service: Configured to communicate with Product Service at: {PRODUCT_SERVICE_URL}"
+            )
             # Then create all tables required by the application
             Base.metadata.create_all(bind=engine)
             logging.info(
@@ -96,7 +101,6 @@ def mock_httpx_client():
         yield mock_client_instance
 
 
-# --- Order Service Tests ---
 def test_read_root(client: TestClient):
     """Test the root endpoint."""
     response = client.get("/")

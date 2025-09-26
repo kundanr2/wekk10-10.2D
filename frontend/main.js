@@ -1,16 +1,18 @@
+// week05/frontend/main.js
+
 document.addEventListener('DOMContentLoaded', () => {
     // API endpoints for the Product, Order, and Customer services.
     // These ports are mapped from the Docker containers to the host machine in docker-compose.yml.
-    const PRODUCT_API_BASE_URL = '';
-    const ORDER_API_BASE_URL = '';
-    const CUSTOMER_API_BASE_URL = '';
+    const PRODUCT_API_BASE_URL = 'http://<product-external-ip>:8000';
+    const ORDER_API_BASE_URL   = 'http://<order-external-ip>:8001';
+    const CUSTOMER_API_BASE_URL = 'http://<customer-external-ip>:8002';  
 
     // DOM Elements
     const messageBox = document.getElementById('message-box');
     const productForm = document.getElementById('product-form');
     const productListDiv = document.getElementById('product-list');
-    const customerForm = document.getElementById('customer-form'); // NEW: Customer Form
-    const customerListDiv = document.getElementById('customer-list'); // NEW: Customer List
+    const customerForm = document.getElementById('customer-form');
+    const customerListDiv = document.getElementById('customer-list');
     const cartItemsList = document.getElementById('cart-items');
     const cartTotalSpan = document.getElementById('cart-total');
     const placeOrderForm = document.getElementById('place-order-form');

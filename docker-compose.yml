@@ -1,0 +1,145 @@
+version: "3.9"
+
+services:
+  # Product Database
+  product-db:
+    image: postgres:15-alpine
+    container_name: product_db_container
+    restart: always
+    environment:
+      POSTGRES_DB: products
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - product_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d products"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Order Database
+  order-db:
+    image: postgres:15-alpine
+    container_name: order_db_container
+    restart: always
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d orders"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Customer Database
+  customer-db:
+    image: postgres:15-alpine
+    container_name: customer_db_container
+    restart: always
+    environment:
+      POSTGRES_DB: customers
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - customer_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d customers"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Product Service (FastAPI)
+  product-service:
+    build:
+      context: ./backend/product_service
+      dockerfile: Dockerfile
+    image: sit72210dacr.azurecr.io/product-service:latest
+    container_name: product_api_container
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: product-db
+      AZURE_STORAGE_ACCOUNT_NAME: <your_storage_account_name>
+      AZURE_STORAGE_ACCOUNT_KEY: <your_storage_account_key>
+      AZURE_STORAGE_CONTAINER_NAME: product-images
+      AZURE_SAS_TOKEN_EXPIRY_HOURS: 24
+    depends_on:
+      product-db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  # Order Service (FastAPI)
+  order-service:
+    build:
+      context: ./backend/order_service
+      dockerfile: Dockerfile
+    image: sit72210dacr.azurecr.io/order-service:latest
+    container_name: order_api_container
+    restart: always
+    ports:
+      - "8001:8000"
+    environment:
+      POSTGRES_HOST: order-db
+      PRODUCT_SERVICE_URL: http://product-service:8000
+    depends_on:
+      order-db:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  # Customer Service (FastAPI)
+  customer-service:
+    build:
+      context: ./backend/customer_service
+      dockerfile: Dockerfile
+    image: sit72210dacr.azurecr.io/customer-service:latest
+    container_name: customer_api_container
+    restart: always
+    ports:
+      - "8002:8000"
+    environment:
+      POSTGRES_HOST: customer-db
+    depends_on:
+      customer-db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: sit72210dacr.azurecr.io/frontend:latest
+    container_name: frontend_container
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      PRODUCT_API_URL: "http://product-service:8000"
+      ORDER_API_URL: "http://order-service:8001"
+      CUSTOMER_API_URL: "http://customer-service:8002"
+    depends_on:
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+
+# Named volumes
+volumes:
+  product_db_data:
+  order_db_data:
+  customer_db_data:

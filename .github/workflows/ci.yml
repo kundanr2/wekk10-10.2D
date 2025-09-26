@@ -1,0 +1,36 @@
+name: CI - Build and Push Images
+
+on:
+  push:
+    branches:
+      - testing
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [frontend, product-service, order-service, customer-service]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to ACR
+        run: |
+          az acr login --name ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+
+      - name: Build and push image
+        run: |
+          if [ "${{ matrix.service }}" = "frontend" ]; then
+            docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/frontend:latest ./frontend
+            docker push ${{ secrets.ACR_LOGIN_SERVER }}/frontend:latest
+          else
+            docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest ./backend/${{ matrix.service }}
+            docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest
+          fi
