@@ -34,3 +34,4 @@ jobs:
             docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest ./backend/${{ matrix.service }}
             docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest
           fi
+#te
