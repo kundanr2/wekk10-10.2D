@@ -2,7 +2,7 @@ name: CD - Deploy to Staging
 
 on:
   workflow_run:
-    workflows: ["CI - Build and Push Images"]
+    workflows: ["CI - Test, Build and Push Images"]
     types:
       - completed
 
@@ -24,6 +24,10 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           cluster-name: sit722aks
           resource-group: 10.2d-rg
+
+      - name: Ensure staging namespace exists
+        run: |
+          kubectl create namespace staging || true
 
       - name: Deploy to Staging
         run: |
