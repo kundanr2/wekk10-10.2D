@@ -63,3 +63,4 @@ jobs:
             docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/customer-service:latest ./backend/customer_service
             docker push ${{ secrets.ACR_LOGIN_SERVER }}/customer-service:latest
           fi
+#tes
