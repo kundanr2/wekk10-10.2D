@@ -23,6 +23,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           cluster-name: sit722aks
           resource-group: 10.2d-rg
+          subscription: ae0eb9b3-af99-4afb-928d-ea541a145e0e
+          admin: true
 
       - name: Ensure production namespace exists
         run: |
