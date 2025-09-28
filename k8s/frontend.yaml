@@ -20,14 +20,6 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
-        volumeMounts:
-        - name: frontend-config-volume
-          mountPath: /usr/share/nginx/html/env.js
-          subPath: env.js
-      volumes:
-      - name: frontend-config-volume
-        configMap:
-          name: frontend-config
 ---
 apiVersion: v1
 kind: Service
