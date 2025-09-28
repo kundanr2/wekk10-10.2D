@@ -21,9 +21,10 @@ jobs:
       - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          cluster-name: sit722aks
           resource-group: 10.2d-rg
+          cluster-name: sit722aks
+          subscription: ae0eb9b3-af99-4afb-928d-ea541a145e0e
+          admin: true
 
       - name: Ensure staging namespace exists
         run: |

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: customer-service
-        image: sit72210dacr.azurecr.io/customer-service:latest
+        image: sit72210dacrstu.azurecr.io/customer-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -52,4 +52,4 @@ spec:
     - protocol: TCP
       port: 8002
       targetPort: 8000
-  type: LoadBalancer
+  type: ClusterIP

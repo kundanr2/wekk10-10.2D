@@ -7,7 +7,7 @@ services:
     container_name: product_db_container
     restart: always
     environment:
-      POSTGRES_DB: products
+      POSTGRES_DB: productsdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -15,7 +15,7 @@ services:
     volumes:
       - product_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d products"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d productsdb"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
     container_name: order_db_container
     restart: always
     environment:
-      POSTGRES_DB: orders
+      POSTGRES_DB: ordersdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -34,7 +34,7 @@ services:
     volumes:
       - order_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d orders"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ordersdb"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -45,7 +45,7 @@ services:
     container_name: customer_db_container
     restart: always
     environment:
-      POSTGRES_DB: customers
+      POSTGRES_DB: customersdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -53,7 +53,7 @@ services:
     volumes:
       - customer_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d customers"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d customersdb"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -63,14 +63,17 @@ services:
     build:
       context: ./backend/product_service
       dockerfile: Dockerfile
-    image: sit72210dacr.azurecr.io/product-service:latest
+    image: sit72210dacrstu.azurecr.io/product-service:latest
     container_name: product_api_container
     restart: always
     ports:
       - "8000:8000"
     environment:
       POSTGRES_HOST: product-db
-      AZURE_STORAGE_ACCOUNT_NAME: <your_storage_account_name>
+      POSTGRES_DB: productsdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      AZURE_STORAGE_ACCOUNT_NAME: sit72210storstu
       AZURE_STORAGE_ACCOUNT_KEY: <your_storage_account_key>
       AZURE_STORAGE_CONTAINER_NAME: product-images
       AZURE_SAS_TOKEN_EXPIRY_HOURS: 24
@@ -84,13 +87,16 @@ services:
     build:
       context: ./backend/order_service
       dockerfile: Dockerfile
-    image: sit72210dacr.azurecr.io/order-service:latest
+    image: sit72210dacrstu.azurecr.io/order-service:latest
     container_name: order_api_container
     restart: always
     ports:
       - "8001:8000"
     environment:
       POSTGRES_HOST: order-db
+      POSTGRES_DB: ordersdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       PRODUCT_SERVICE_URL: http://product-service:8000
     depends_on:
       order-db:
@@ -104,13 +110,16 @@ services:
     build:
       context: ./backend/customer_service
       dockerfile: Dockerfile
-    image: sit72210dacr.azurecr.io/customer-service:latest
+    image: sit72210dacrstu.azurecr.io/customer-service:latest
     container_name: customer_api_container
     restart: always
     ports:
       - "8002:8000"
     environment:
       POSTGRES_HOST: customer-db
+      POSTGRES_DB: customersdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     depends_on:
       customer-db:
         condition: service_healthy
@@ -121,7 +130,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: sit72210dacr.azurecr.io/frontend:latest
+    image: sit72210dacrstu.azurecr.io/frontend:latest
     container_name: frontend_container
     restart: always
     ports:
