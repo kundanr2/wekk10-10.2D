@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: sit72210dacr.azurecr.io/frontend:latest   # Correct ACR reference
+        image: sit72210dacrstu.azurecr.io/frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
