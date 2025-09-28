@@ -5,7 +5,7 @@ metadata:
 data:
   env.js: |
     window.ENV = {
-      PRODUCT_API_URL: "http://product-service:8000",
-      ORDER_API_URL: "http://order-service:8001",
-      CUSTOMER_API_URL: "http://customer-service:8002"
+      PRODUCT_API_URL: "/api/products",
+      ORDER_API_URL: "/api/orders",
+      CUSTOMER_API_URL: "/api/customers"
     };
